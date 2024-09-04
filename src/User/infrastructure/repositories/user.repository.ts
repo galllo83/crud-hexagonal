@@ -4,12 +4,13 @@ import { UpdateUserDto } from '../../domain/dto/update-user.dto';
 import { User } from '../../domain/entities/user.entity';
 import { IUserRepository } from '../../application/interfaces/user.repository.interface';
 import { UserService } from '../../application/services/user.service';
+import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(private readonly userService: UserService) {}
-  async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  async findAll(options: IPaginationOptions): Promise<Pagination<User>> {
+    return this.userService.findAll(options);
   }
 
   async findById(id: number): Promise<User> {

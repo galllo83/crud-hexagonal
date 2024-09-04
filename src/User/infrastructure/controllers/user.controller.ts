@@ -7,13 +7,17 @@ import {
   Body,
   Delete,
   Patch,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UpdateUserDto } from '../../domain/dto/update-user.dto';
 import { User } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../../domain/dto/create-user.dto';
 import { IUserRepository } from '../../application/interfaces/user.repository.interface';
 import { UserRepository } from '../repositories/user.repository';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @ApiTags('User')
 @Controller('users')
@@ -26,8 +30,28 @@ export class UserController {
   @Get()
   @ApiResponse({ status: 200, description: 'The user has been found.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    required: true,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    example: 10,
+    required: true,
+    description: 'Record limit',
+  })
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ): Promise<Pagination<User>> {
+    limit = limit > 100 ? 100 : limit;
+    return this.userService.findAll({
+      page,
+      limit,
+      //route: 'http://cats.com/cats', to show links pages
+    });
   }
 
   @Get(':id')
