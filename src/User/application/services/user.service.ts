@@ -9,6 +9,8 @@ import {
   paginate,
   Pagination,
 } from 'nestjs-typeorm-paginate';
+import { OrderParamsEnum } from 'src/helpers/enums/OrderParamsEnum';
+import { UserSortParamsEnum } from 'src/helpers/enums/userParamsEnum';
 
 @Injectable()
 export class UserService {
@@ -17,8 +19,14 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async findAll(options: IPaginationOptions): Promise<Pagination<User>> {
-    return paginate<User>(this.userRepository, options);
+  async findAll(
+    sortBy: UserSortParamsEnum,
+    order: OrderParamsEnum,
+    options: IPaginationOptions,
+  ): Promise<Pagination<User>> {
+    const queryBuilder = this.userRepository.createQueryBuilder('u');
+    queryBuilder.orderBy(sortBy, order);
+    return paginate<User>(queryBuilder, options);
   }
 
   async findById(id: number): Promise<User> {

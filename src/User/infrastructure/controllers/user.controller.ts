@@ -18,6 +18,8 @@ import { IUserRepository } from '../../application/interfaces/user.repository.in
 import { UserRepository } from '../repositories/user.repository';
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { UserSortParamsEnum } from 'src/helpers/enums/userParamsEnum';
+import { OrderParamsEnum } from 'src/helpers/enums/OrderParamsEnum';
 
 @ApiTags('User')
 @Controller('users')
@@ -31,6 +33,18 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'The user has been found.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiQuery({
+    name: 'order',
+    enum: OrderParamsEnum,
+    required: false,
+    description: 'Sort order',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    enum: UserSortParamsEnum,
+    required: false,
+    description: 'Field to sort by',
+  })
+  @ApiQuery({
     name: 'page',
     example: 1,
     required: true,
@@ -43,11 +57,13 @@ export class UserController {
     description: 'Record limit',
   })
   async findAll(
+    @Query('sortBy') sortBy: UserSortParamsEnum,
+    @Query('order') order: OrderParamsEnum,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ): Promise<Pagination<User>> {
     limit = limit > 100 ? 100 : limit;
-    return this.userService.findAll({
+    return this.userService.findAll(sortBy, order, {
       page,
       limit,
       //route: 'http://cats.com/cats', to show links pages
